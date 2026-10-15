@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+# Como o script sera rodado por dentro do Ansys, o "oDesktop" ja existe nativamente
+oProject = oDesktop.NewProject()
+oProject.InsertDesign("HFSS", "Dipolo_Base", "DrivenModal", "")
+oEditor = oProject.SetActiveDesign("Dipolo_Base").SetActiveEditor("3D Modeler")
+
+# Desenha o Substrato (FR4)
+oEditor.CreateBox(["NAME:BoxParameters", "XPosition:=", "0mm", "YPosition:=", "0mm", "ZPosition:=", "0mm", "XSize:=", "60mm", "YSize:=", "80mm", "ZSize:=", "1.6mm"], ["NAME:Attributes", "Name:=", "Substrato", "Flags:=", "", "Color:=", "(0 255 0)", "Transparency:=", 0, "PartCoordinateSystem:=", "Global", "UDMId:=", "", "MaterialValue:=", '"FR4_epoxy"', "SurfaceMaterialValue:=", '""', "SolveInside:=", True, "IsMaterialEditable:=", True, "UseMaterialAppearance:=", False, "IsLightweight:=", False])
+
+# Desenha o Patch Triangular (Cobre / PEC)
+oEditor.CreatePolyline(["NAME:PolylineParameters", "IsPolylineCovered:=", True, "IsPolylineClosed:=", True, ["NAME:PolylinePoints", ["NAME:PLPoint", "X:=", "10mm", "Y:=", "10mm", "Z:=", "1.6mm"], ["NAME:PLPoint", "X:=", "50mm", "Y:=", "10mm", "Z:=", "1.6mm"], ["NAME:PLPoint", "X:=", "30mm", "Y:=", "70mm", "Z:=", "1.6mm"]], ["NAME:PolylineSegments", ["NAME:PLSegment", "SegmentType:=", "Line", "StartIndex:=", 0, "NoOfPoints:=", 2], ["NAME:PLSegment", "SegmentType:=", "Line", "StartIndex:=", 1, "NoOfPoints:=", 2], ["NAME:PLSegment", "SegmentType:=", "Line", "StartIndex:=", 2, "NoOfPoints:=", 2]], ["NAME:PolylineXSection", "XSectionType:=", "None", "XSectionOrient:=", "Auto", "XSectionWidth:=", "0mm", "XSectionTopWidth:=", "0mm", "XSectionHeight:=", "0mm", "XSectionNumSegments:=", "0", "XSectionBendType:=", "Corner"]], ["NAME:Attributes", "Name:=", "Patch_Principal", "Flags:=", "", "Color:=", "(255 128 0)", "Transparency:=", 0, "PartCoordinateSystem:=", "Global", "UDMId:=", "", "MaterialValue:=", '"pec"', "SurfaceMaterialValue:=", '""', "SolveInside:=", False, "IsMaterialEditable:=", True, "UseMaterialAppearance:=", False, "IsLightweight:=", False])
