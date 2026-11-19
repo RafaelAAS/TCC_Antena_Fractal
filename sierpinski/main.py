@@ -10,6 +10,8 @@
 #  5. Setup: MaxDeltaS 0,01 e minimo de 3 passes (antes 0,02 e 1).
 #  6. Folhas extras geradas pelo Subtract tambem recebem PEC (seguranca).
 #  7. Projeto salvo como Antena_Fractal_SFMA_v2.aedt; mensagens com {chaves} corrigidas.
+#  8. Esfera Infinita (Infinite Sphere1 e Esfera_2D) + relatorios de Ganho 3D e 2D
+#     (Ganho_3D, Diagrama_2D_Planos, Diagrama_2D_XY) adicionados em 2,45 GHz.
 # ==============================================================================
 import subprocess
 import time
@@ -227,7 +229,38 @@ oEditor.CreateBox(
 )
 oModule_Bound.AssignRadiation(["NAME:Radiation1", "Objects:=", ["AirBox"], "IsFssReference:=", False, "IsIncidentField:=", False])
 
-# 11. Setup e varredura. Como |S11| a 50 ohm fica perto de 1, um erro pequeno em S vira erro
+# 11. Esfera Infinita de Campo Distante (ganho e diagrama de radiacao em 2,45 GHz)
+oModule_Rad = oDesign.GetModule("RadField")
+oModule_Rad.InsertInfiniteSphereSetup([
+    "NAME:Infinite Sphere1",
+    "UseCustomRadiationSurface:=", False,
+    "CSDefinition:=", "Theta-Phi",
+    "Polarization:=", "Linear",
+    "Boresight:=", "Z Axis",
+    "ThetaStart:=", "0deg",
+    "ThetaStop:=", "180deg",
+    "ThetaStep:=", "2deg",
+    "PhiStart:=", "-180deg",
+    "PhiStop:=", "180deg",
+    "PhiStep:=", "2deg",
+    "UseLocalCS:=", False
+])
+oModule_Rad.InsertInfiniteSphereSetup([
+    "NAME:Esfera_2D",
+    "UseCustomRadiationSurface:=", False,
+    "CSDefinition:=", "Theta-Phi",
+    "Polarization:=", "Linear",
+    "Boresight:=", "Z Axis",
+    "ThetaStart:=", "-180deg",
+    "ThetaStop:=", "180deg",
+    "ThetaStep:=", "2deg",
+    "PhiStart:=", "0deg",
+    "PhiStop:=", "90deg",
+    "PhiStep:=", "90deg",
+    "UseLocalCS:=", False
+])
+
+# 12. Setup e varredura. Como |S11| a 50 ohm fica perto de 1, um erro pequeno em S vira erro
 #     grande em Z; por isso MaxDeltaS menor e minimo de passes maior.
 oModule_Setup = oDesign.GetModule("AnalysisSetup")
 oModule_Setup.InsertSetup("HfssDriven",
@@ -237,7 +270,7 @@ oModule_Setup.InsertFrequencySweep("Setup1",
     ["NAME:Sweep1", "Type:=", "Interpolating", "IsEnabled:=", True, "RangeType:=", "LinearStep", "RangeStart:=", "1.5GHz", "RangeEnd:=", "4.0GHz", "RangeStep:=", "0.01GHz", "SaveFields:=", False, "SaveRadFields:=", False]
 )
 
-# 12. Relatorios (aparecem em Results depois do Analyze All). Se falhar, crie a mao (ver aviso).
+# 13. Relatorios (aparecem em Results depois do Analyze All). Se falhar, crie a mao (ver aviso).
 try:
     oModule_Out = oDesign.GetModule("OutputVariable")
     oModule_Out.CreateOutputVariable("S11_chip", "{expr_s11_chip}", "Setup1 : Sweep1", "Modal Solution Data", [])
@@ -245,6 +278,9 @@ try:
     oModule_Rep.CreateReport("Z_entrada", "Modal Solution Data", "Rectangular Plot", "Setup1 : Sweep1", ["Domain:=", "Sweep"], ["Freq:=", ["All"]], ["X Component:=", "Freq", "Y Component:=", ["re(Z(Port1,Port1))", "im(Z(Port1,Port1))"]], [])
     oModule_Rep.CreateReport("S11_chip", "Modal Solution Data", "Rectangular Plot", "Setup1 : Sweep1", ["Domain:=", "Sweep"], ["Freq:=", ["All"]], ["X Component:=", "Freq", "Y Component:=", ["dB(S11_chip)"]], [])
     oModule_Rep.CreateReport("S11_50ohm", "Modal Solution Data", "Rectangular Plot", "Setup1 : Sweep1", ["Domain:=", "Sweep"], ["Freq:=", ["All"]], ["X Component:=", "Freq", "Y Component:=", ["dB(S(Port1,Port1))"]], [])
+    oModule_Rep.CreateReport("Ganho_3D", "Far Fields", "3D Polar Plot", "Setup1 : LastAdaptive", ["Context:=", "Infinite Sphere1"], ["Phi:=", ["All"], "Theta:=", ["All"], "Freq:=", ["2.45GHz"]], ["Phi Component:=", "Phi", "Theta Component:=", "Theta", "Mag Component:=", ["dB(GainTotal)"]], [])
+    oModule_Rep.CreateReport("Diagrama_2D_Planos", "Far Fields", "Radiation Pattern", "Setup1 : LastAdaptive", ["Context:=", "Esfera_2D"], ["Theta:=", ["All"], "Phi:=", ["0deg", "90deg"], "Freq:=", ["2.45GHz"]], ["Ang Component:=", "Theta", "Mag Component:=", ["dB(GainTotal)"]], [])
+    oModule_Rep.CreateReport("Diagrama_2D_XY", "Far Fields", "Radiation Pattern", "Setup1 : LastAdaptive", ["Context:=", "Infinite Sphere1"], ["Phi:=", ["All"], "Theta:=", ["90deg"], "Freq:=", ["2.45GHz"]], ["Ang Component:=", "Phi", "Mag Component:=", ["dB(GainTotal)"]], [])
 except Exception as erro:
     oDesktop.AddMessage("", "", 1, "Relatorios nao criados automaticamente (" + str(erro) + "). Crie a mao: re/im(Z(Port1,Port1)) e dB(S11_chip).")
 

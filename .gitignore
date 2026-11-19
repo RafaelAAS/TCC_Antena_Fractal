@@ -222,3 +222,6 @@ __marimo__/
 *.aedtresults/
 *.lock
 *.log
+
+# Artigos e livros de referencia (material com direitos autorais): apenas locais, nao versionar
+docs/artigos/
